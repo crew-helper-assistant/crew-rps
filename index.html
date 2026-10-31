@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>剪刀石頭布 - 會學你習慣的電腦</title>
+<style>
+  :root {
+    --bg1: #1a1a2e;
+    --bg2: #16213e;
+    --card: #232a45;
+    --card-light: #2e3a5e;
+    --accent: #ffd166;
+    --you: #4ecdc4;
+    --cpu: #ff6b6b;
+    --text: #f4f4f8;
+    --muted: #9aa3c0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    color: var(--text);
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+  .app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { font-size: 1.5rem; text-align: center; letter-spacing: 0.05em; }
+  .rule-hint {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 12px 18px;
+    font-weight: 700;
+  }
+  .scoreboard .side { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
+  .scoreboard .label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+  .scoreboard .num { font-size: 1.6rem; }
+  .scoreboard .you .num { color: var(--you); }
+  .scoreboard .cpu .num { color: var(--cpu); }
+  .scoreboard .ties { font-size: 0.85rem; color: var(--muted); text-align: center; }
+  .arena {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--card);
+    border-radius: 20px;
+    padding: 26px 10px;
+    min-height: 170px;
+  }
+  .hand-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 40%; }
+  .hand {
+    width: 96px; height: 96px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.2rem;
+    background: var(--card-light);
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    user-select: none;
+  }
+  .hand-slot.who { font-size: 0.85rem; color: var(--muted); }
+  .hand-slot .name { font-size: 0.85rem; color: var(--muted); }
+  .vs { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+  .shaking { animation: shake 0.45s ease infinite; }
+  @keyframes shake {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    25% { transform: translateY(-10px) rotate(-8deg); }
+    75% { transform: translateY(-10px) rotate(8deg); }
+  }
+  .pop { animation: pop 0.25s ease; }
+  @keyframes pop { 0% { transform: scale(0.5); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .result {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    min-height: 1.8rem;
+  }
+  .result.win { color: var(--you); }
+  .result.lose { color: var(--cpu); }
+  .result.tie { color: var(--accent); }
+  .why {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+    min-height: 1.3rem;
+    line-height: 1.5;
+    padding: 0 8px;
+  }
+  .choices { display: flex; gap: 12px; }
+  .choice {
+    flex: 1;
+    border: none;
+    border-radius: 18px;
+    background: var(--card-light);
+    color: var(--text);
+    padding: 16px 0 12px;
+    font-size: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+    touch-action: manipulation;
+  }
+  .choice .word { font-size: 0.9rem; font-weight: 700; }
+  .choice:active { transform: scale(0.94); background: #3a4a75; }
+  .choice:disabled { opacity: 0.5; cursor: default; }
+  .history {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .history h2 { font-size: 0.9rem; color: var(--text); margin-bottom: 8px; }
+  .history ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .history li { display: flex; justify-content: space-between; gap: 8px; }
+  .history .r-win { color: var(--you); font-weight: 700; }
+  .history .r-lose { color: var(--cpu); font-weight: 700; }
+  .history .r-tie { color: var(--accent); font-weight: 700; }
+  .reset {
+    border: 1px solid var(--card-light);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .reset:active { background: var(--card); }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>✌️✊✋ 剪刀石頭布</h1>
+  <div class="rule-hint">
+    電腦的策略：上一把他<b>輸了</b>，就出上一把雙方都沒出過的那一招；他<b>贏了</b>，就學你上一把出的；<b>平手</b>就隨機出。
+  </div>
+
+  <div class="scoreboard">
+    <div class="side you"><span class="label">你</span><span class="num" id="scoreYou">0</span></div>
+    <div class="ties">平手<br><span id="scoreTie">0</span></div>
+    <div class="side cpu"><span class="label">電腦</span><span class="num" id="scoreCpu">0</span></div>
+  </div>
+
+  <div class="arena">
+    <div class="hand-slot">
+      <div class="hand" id="handYou">❔</div>
+      <div class="name">你</div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="hand-slot">
+      <div class="hand" id="handCpu">❔</div>
+      <div class="name">電腦</div>
+    </div>
+  </div>
+
+  <div class="result" id="result">出拳吧！</div>
+  <div class="why" id="why"></div>
+
+  <div class="choices">
+    <button class="choice" data-move="scissors"><span>✌️</span><span class="word">剪刀</span></button>
+    <button class="choice" data-move="rock"><span>✊</span><span class="word">石頭</span></button>
+    <button class="choice" data-move="paper"><span>✋</span><span class="word">布</span></button>
+  </div>
+
+  <div class="history">
+    <h2>對戰紀錄</h2>
+    <ul id="historyList"><li>還沒有紀錄</li></ul>
+  </div>
+
+  <button class="reset" id="resetBtn">重新開始</button>
+</div>
+
+<script>
+// === game-logic-start ===
+// moves: 'rock' | 'paper' | 'scissors'
+var MOVES = ['rock', 'paper', 'scissors'];
+var BEATS = { rock: 'scissors', scissors: 'paper', paper: 'rock' };
+
+function outcome(human, cpu) {
+  if (human === cpu) return 'tie';
+  return BEATS[human] === cpu ? 'win' : 'lose'; // from the human's view
+}
+
+// The computer's adaptive strategy:
+// - first round or last round was a tie: random
+// - computer LOST last round: play the one move neither side played last round
+// - computer WON last round: copy the human's last move
+function decideComputerMove(prevHuman, prevCpu, rng) {
+  rng = rng || Math.random;
+  if (!prevHuman || !prevCpu) return MOVES[Math.floor(rng() * 3)];
+  if (prevHuman === prevCpu) return MOVES[Math.floor(rng() * 3)];
+  var humanWon = BEATS[prevHuman] === prevCpu;
+  if (humanWon) {
+    // computer lost -> the third move neither side used
+    for (var i = 0; i < MOVES.length; i++) {
+      if (MOVES[i] !== prevHuman && MOVES[i] !== prevCpu) return MOVES[i];
+    }
+  }
+  return prevHuman; // computer won -> copy the human's last move
+}
+// === game-logic-end ===
+
+var EMOJI = { rock: '✊', paper: '✋', scissors: '✌️' };
+var WORD = { rock: '石頭', paper: '布', scissors: '剪刀' };
+
+var state = { you: 0, cpu: 0, tie: 0, prevHuman: null, prevCpu: null, busy: false, round: 0 };
+
+var el = {
+  handYou: document.getElementById('handYou'),
+  handCpu: document.getElementById('handCpu'),
+  result: document.getElementById('result'),
+  why: document.getElementById('why'),
+  scoreYou: document.getElementById('scoreYou'),
+  scoreCpu: document.getElementById('scoreCpu'),
+  scoreTie: document.getElementById('scoreTie'),
+  historyList: document.getElementById('historyList'),
+  resetBtn: document.getElementById('resetBtn')
+};
+
+function setButtons(enabled) {
+  document.querySelectorAll('.choice').forEach(function (b) { b.disabled = !enabled; });
+}
+
+function play(humanMove) {
+  if (state.busy) return;
+  state.busy = true;
+  setButtons(false);
+
+  var cpuMove = decideComputerMove(state.prevHuman, state.prevCpu);
+  var prevHuman = state.prevHuman, prevCpu = state.prevCpu;
+
+  el.result.textContent = '剪刀・石頭・布…';
+  el.result.className = 'result';
+  el.why.textContent = '';
+  el.handYou.textContent = '✊';
+  el.handCpu.textContent = '✊';
+  el.handYou.classList.add('shaking');
+  el.handCpu.classList.add('shaking');
+
+  setTimeout(function () {
+    el.handYou.classList.remove('shaking');
+    el.handCpu.classList.remove('shaking');
+    el.handYou.textContent = EMOJI[humanMove];
+    el.handCpu.textContent = EMOJI[cpuMove];
+    el.handYou.classList.add('pop');
+    el.handCpu.classList.add('pop');
+    setTimeout(function () {
+      el.handYou.classList.remove('pop');
+      el.handCpu.classList.remove('pop');
+    }, 300);
+
+    var res = outcome(humanMove, cpuMove);
+    state.round++;
+    if (res === 'win') { state.you++; el.result.textContent = '你贏了！🎉'; el.result.className = 'result win'; }
+    else if (res === 'lose') { state.cpu++; el.result.textContent = '電腦贏了！'; el.result.className = 'result lose'; }
+    else { state.tie++; el.result.textContent = '平手！'; el.result.className = 'result tie'; }
+    el.scoreYou.textContent = state.you;
+    el.scoreCpu.textContent = state.cpu;
+    el.scoreTie.textContent = state.tie;
+
+    // explain why the computer picked this move
+    if (!prevHuman) {
+      el.why.textContent = '第一把，電腦隨機出了' + WORD[cpuMove] + '。';
+    } else if (prevHuman === prevCpu) {
+      el.why.textContent = '上一把平手，電腦隨機出了' + WORD[cpuMove] + '。';
+    } else if (BEATS[prevHuman] === prevCpu) {
+      el.why.textContent = '電腦上一把輸了，所以出你們都沒出過的' + WORD[cpuMove] + '。';
+    } else {
+      el.why.textContent = '電腦上一把贏了，所以學你出' + WORD[cpuMove] + '。';
+    }
+
+    var li = document.createElement('li');
+    var tag = res === 'win' ? '<span class="r-win">你贏</span>' : res === 'lose' ? '<span class="r-lose">電腦贏</span>' : '<span class="r-tie">平手</span>';
+    li.innerHTML = '<span>第 ' + state.round + ' 把　你 ' + EMOJI[humanMove] + ' vs 電腦 ' + EMOJI[cpuMove] + '</span>' + tag;
+    if (state.round === 1) el.historyList.innerHTML = '';
+    el.historyList.insertBefore(li, el.historyList.firstChild);
+    while (el.historyList.children.length > 10) el.historyList.removeChild(el.historyList.lastChild);
+
+    state.prevHuman = humanMove;
+    state.prevCpu = cpuMove;
+    state.busy = false;
+    setButtons(true);
+  }, 600);
+}
+
+document.querySelectorAll('.choice').forEach(function (b) {
+  b.addEventListener('click', function () { play(b.getAttribute('data-move')); });
+});
+
+el.resetBtn.addEventListener('click', function () {
+  state = { you: 0, cpu: 0, tie: 0, prevHuman: null, prevCpu: null, busy: false, round: 0 };
+  el.scoreYou.textContent = '0';
+  el.scoreCpu.textContent = '0';
+  el.scoreTie.textContent = '0';
+  el.handYou.textContent = '❔';
+  el.handCpu.textContent = '❔';
+  el.result.textContent = '出拳吧！';
+  el.result.className = 'result';
+  el.why.textContent = '';
+  el.historyList.innerHTML = '<li>還沒有紀錄</li>';
+  setButtons(true);
+});
+</script>
+</body>
+</html>
